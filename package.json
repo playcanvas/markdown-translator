@@ -1,0 +1,36 @@
+{
+  "name": "markdown-translator",
+  "version": "1.0.0",
+  "description": "A command line tool to translate markdown files using Google Gemini AI",
+  "main": "index.js",
+  "bin": {
+    "md-translate": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js",
+    "demo": "node bin/cli.js translate -i examples/sample.md -l Spanish",
+    "setup": "node bin/cli.js setup",
+    "languages": "node bin/cli.js languages",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "markdown",
+    "translation",
+    "gemini",
+    "ai",
+    "cli"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.17.1",
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "fs-extra": "^11.2.0",
+    "path": "^0.12.7"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 
