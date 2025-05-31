@@ -23,14 +23,14 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
-    "@google/generative-ai": "^0.17.1",
-    "commander": "^11.1.0",
+    "@google/generative-ai": "^0.24.1",
     "chalk": "^4.1.2",
-    "ora": "^5.4.1",
+    "commander": "^14.0.0",
     "fs-extra": "^11.2.0",
+    "ora": "^5.4.1",
     "path": "^0.12.7"
   },
   "engines": {
     "node": ">=16.0.0"
   }
-} 
+}
