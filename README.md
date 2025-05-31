@@ -19,6 +19,8 @@ A powerful command-line tool that uses Google Gemini AI to translate markdown fi
 - Node.js 16.0.0 or higher
 - Google Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
 
+> **Note**: This tool uses ES modules (ESM) and requires Node.js 16+ for full compatibility.
+
 ### Install dependencies
 
 ```bash
@@ -264,6 +266,15 @@ markdown-translator/
 ├── package.json         # Dependencies and scripts
 └── README.md           # Documentation
 ```
+
+### Architecture
+
+This project uses **ES modules (ESM)** for modern JavaScript development:
+
+- All files use `import`/`export` syntax instead of `require`/`module.exports`
+- `package.json` includes `"type": "module"` for ESM support
+- Compatible with the latest versions of dependencies (chalk 5.x, ora 8.x)
+- Requires Node.js 16+ for full ESM compatibility
 
 ### Key Dependencies
 

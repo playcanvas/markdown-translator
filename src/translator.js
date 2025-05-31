@@ -1,7 +1,7 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const fs = require('fs-extra');
-const path = require('path');
-const chalk = require('chalk');
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
 
 class MarkdownTranslator {
   constructor(apiKey, modelName = "gemini-1.5-flash") {
@@ -230,4 +230,4 @@ ${text}`;
   }
 }
 
-module.exports = MarkdownTranslator; 
+export default MarkdownTranslator; 

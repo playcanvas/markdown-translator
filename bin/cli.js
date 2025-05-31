@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const { Command } = require('commander');
-const chalk = require('chalk');
-const ora = require('ora');
-const path = require('path');
-const fs = require('fs-extra');
-const MarkdownTranslator = require('../src/translator');
+import { Command } from 'commander';
+import chalk from 'chalk';
+import ora from 'ora';
+import path from 'path';
+import fs from 'fs-extra';
+import MarkdownTranslator from '../src/translator.js';
 
 const program = new Command();
 

@@ -2,6 +2,7 @@
   "name": "markdown-translator",
   "version": "1.0.0",
   "description": "A command line tool to translate markdown files using Google Gemini AI",
+  "type": "module",
   "main": "index.js",
   "bin": {
     "md-translate": "./bin/cli.js"
@@ -24,10 +25,10 @@
   "license": "MIT",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "chalk": "^4.1.2",
+    "chalk": "^5.4.1",
     "commander": "^14.0.0",
     "fs-extra": "^11.2.0",
-    "ora": "^5.4.1",
+    "ora": "^8.2.0",
     "path": "^0.12.7"
   },
   "engines": {
