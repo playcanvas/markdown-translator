@@ -5,14 +5,14 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 
 class MarkdownTranslator {
-    constructor(apiKey, modelName = 'gemini-1.5-flash') {
+    constructor(apiKey) {
         if (!apiKey) {
             throw new Error('Google Gemini API key is required');
         }
         this.genAI = new GoogleGenerativeAI(apiKey);
-        this.modelName = modelName;
-        this.model = this.genAI.getGenerativeModel({ model: modelName });
-        console.log(chalk.gray(`Using model: ${modelName}`));
+        this.modelName = 'gemini-2.5-flash';
+        this.model = this.genAI.getGenerativeModel({ model: this.modelName });
+        console.log(chalk.gray(`Using model: ${this.modelName}`));
     }
 
     /**
@@ -179,57 +179,6 @@ ${text}`;
             'Ukrainian', 'Czech', 'Hungarian', 'Romanian', 'Bulgarian',
             'Croatian', 'Serbian', 'Slovak', 'Slovenian', 'Estonian',
             'Latvian', 'Lithuanian', 'Catalan', 'Basque', 'Welsh', 'Irish'
-        ];
-    }
-
-    /**
-     * Get available Gemini models for translation
-     * @returns {Array} Array of available model information
-     */
-    static getAvailableModels() {
-        return [
-            {
-                name: 'gemini-2.5-flash-preview-05-20',
-                description: 'Latest: Best price-performance, adaptive thinking',
-                recommended: true,
-                tier: 'preview'
-            },
-            {
-                name: 'gemini-2.5-pro-preview-05-06',
-                description: 'Most powerful thinking model for complex tasks',
-                recommended: false,
-                tier: 'preview'
-            },
-            {
-                name: 'gemini-2.0-flash',
-                description: 'Next-gen features, speed, 1M token context',
-                recommended: false,
-                tier: 'stable'
-            },
-            {
-                name: 'gemini-2.0-flash-lite',
-                description: 'Cost-efficient, low latency',
-                recommended: false,
-                tier: 'stable'
-            },
-            {
-                name: 'gemini-1.5-flash',
-                description: 'Fast and versatile (current default)',
-                recommended: false,
-                tier: 'stable'
-            },
-            {
-                name: 'gemini-1.5-flash-8b',
-                description: 'Smaller model for high-volume tasks',
-                recommended: false,
-                tier: 'stable'
-            },
-            {
-                name: 'gemini-1.5-pro',
-                description: 'Complex reasoning tasks',
-                recommended: false,
-                tier: 'stable'
-            }
         ];
     }
 }
