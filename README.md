@@ -10,7 +10,7 @@ A powerful command-line tool that uses Google Gemini AI to translate markdown fi
 - 🎯 **Selective translation** - Only translates text content, keeps code and URLs intact
 - 📊 **Progress tracking** - Real-time progress indication with spinners
 - 🎨 **Beautiful CLI** - Colorful, user-friendly command-line interface
-- ⚡ **Fast processing** - Optimized for speed with latest Gemini 2.5 Flash model
+- ⚡ **Fast processing** - Optimized for speed with high-performance Gemini model
 
 ## Installation
 
