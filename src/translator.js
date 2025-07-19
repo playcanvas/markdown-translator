@@ -16,12 +16,15 @@ class MarkdownTranslator {
     }
 
     /**
-     * Split markdown content into chunks to handle large files
+     * Split markdown content into chunks to handle large files. With gemini-2.5-flash's 1M token
+     * context (~3.75M characters), most files can be processed in one chunk
+     *
      * @param {string} content - The markdown content
-     * @param {number} maxChunkSize - Maximum size per chunk
+     * @param {number} maxChunkSize - Maximum size per chunk (default: 800K chars for 1M token model)
      * @returns {Array} Array of content chunks
      */
-    splitIntoChunks(content, maxChunkSize = 4000) {
+    splitIntoChunks(content, maxChunkSize = 800000) {
+        // For most markdown files, this will result in a single chunk
         const lines = content.split('\n');
         const chunks = [];
         let currentChunk = '';
@@ -43,7 +46,8 @@ class MarkdownTranslator {
     }
 
     /**
-     * Create translation prompt for Gemini
+     * Create translation prompt for Gemini.
+     *
      * @param {string} text - Text to translate
      * @param {string} targetLanguage - Target language
      * @returns {string} Translation prompt
@@ -67,7 +71,8 @@ ${text}`;
     }
 
     /**
-     * Translate a single chunk of text
+     * Translate a single chunk of text.
+     *
      * @param {string} chunk - Text chunk to translate
      * @param {string} targetLanguage - Target language
      * @returns {Promise<string>} Translated text
@@ -85,7 +90,8 @@ ${text}`;
     }
 
     /**
-     * Translate markdown content
+     * Translate markdown content.
+     *
      * @param {string} content - Markdown content to translate
      * @param {string} targetLanguage - Target language
      * @param {Function} progressCallback - Optional progress callback
@@ -120,7 +126,8 @@ ${text}`;
     }
 
     /**
-     * Translate a markdown file
+     * Translate a markdown file.
+     *
      * @param {string} inputPath - Path to input markdown file
      * @param {string} outputPath - Path to output file
      * @param {string} targetLanguage - Target language
@@ -167,7 +174,8 @@ ${text}`;
     }
 
     /**
-     * Get supported languages (common ones)
+     * Get supported languages (common ones).
+     *
      * @returns {Array} Array of supported language names
      */
     static getSupportedLanguages() {
