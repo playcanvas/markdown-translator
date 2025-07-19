@@ -5,6 +5,12 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 
 class MarkdownTranslator {
+    /**
+     * Default chunk size for gemini-2.5-flash. With gemini-2.5-flash's 1M token context
+     * (~3.75M characters), most files can be processed in one chunk.
+     */
+    static DEFAULT_CHUNK_SIZE = 800000;
+
     constructor(apiKey) {
         if (!apiKey) {
             throw new Error('Google Gemini API key is required');
@@ -16,11 +22,10 @@ class MarkdownTranslator {
     }
 
     /**
-     * Split markdown content into chunks to handle large files. With gemini-2.5-flash's 1M token
-     * context (~3.75M characters), most files can be processed in one chunk
+     * Split markdown content into chunks to handle large files.
      *
      * @param {string} content - The markdown content
-     * @param {number} maxChunkSize - Maximum size per chunk (default: 800K chars for 1M token model)
+     * @param {number} maxChunkSize - Maximum size per chunk
      * @returns {Array} Array of content chunks
      */
     splitIntoChunks(content, maxChunkSize = MarkdownTranslator.DEFAULT_CHUNK_SIZE) {
