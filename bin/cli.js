@@ -27,8 +27,8 @@ program
 
 program
 .command('translate')
-.description('Translate a markdown file to specified language')
-.requiredOption('-i, --input <file>', 'Input markdown file path')
+.description('Translate a markdown or MDX file to specified language')
+.requiredOption('-i, --input <file>', 'Input markdown/MDX file path')
 .requiredOption('-l, --language <lang>', 'Target language (e.g., Spanish, French, German)')
 .option('-o, --output <file>', 'Output file path (optional)')
 .option('-k, --key <apikey>', 'Google Gemini API key (or set GEMINI_API_KEY env var)')
@@ -53,8 +53,10 @@ program
         }
 
         // Validate file extension
-        if (!inputPath.toLowerCase().endsWith('.md') && !inputPath.toLowerCase().endsWith('.markdown')) {
-            console.error(chalk.red('❌ Error: Input file must be a markdown file (.md or .markdown)'));
+        if (!inputPath.toLowerCase().endsWith('.md') &&
+            !inputPath.toLowerCase().endsWith('.markdown') &&
+            !inputPath.toLowerCase().endsWith('.mdx')) {
+            console.error(chalk.red('❌ Error: Input file must be a markdown file (.md, .markdown, or .mdx)'));
             process.exit(1);
         }
 

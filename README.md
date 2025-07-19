@@ -1,6 +1,6 @@
 # Markdown Translator
 
-A powerful command-line tool that uses Google Gemini AI to translate markdown files from English to any specified language while preserving formatting and structure.
+A powerful command-line tool that uses Google Gemini AI to translate markdown and MDX files from English to any specified language while preserving formatting and structure.
 
 ## Features
 
@@ -78,13 +78,13 @@ md-translate translate -i file.md -l German --key your-api-key
 
 ### Available Commands
 
-#### `translate` - Translate a markdown file
+#### `translate` - Translate a markdown or MDX file
 
 ```bash
 md-translate translate [options]
 
 Options:
-  -i, --input <file>     Input markdown file path (required)
+  -i, --input <file>     Input markdown/MDX file path (required)
   -l, --language <lang>  Target language (required)
   -o, --output <file>    Output file path (optional)
   -k, --key <apikey>     Google Gemini API key (optional)

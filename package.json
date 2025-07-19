@@ -1,7 +1,7 @@
 {
   "name": "markdown-translator",
   "version": "1.0.0",
-  "description": "A command line tool to translate markdown files using Google Gemini AI",
+  "description": "A command line tool to translate markdown and MDX files using Google Gemini AI",
   "type": "module",
   "main": "index.js",
   "bin": {
