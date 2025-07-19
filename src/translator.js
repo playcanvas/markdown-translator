@@ -23,7 +23,7 @@ class MarkdownTranslator {
      * @param {number} maxChunkSize - Maximum size per chunk (default: 800K chars for 1M token model)
      * @returns {Array} Array of content chunks
      */
-    splitIntoChunks(content, maxChunkSize = 800000) {
+    splitIntoChunks(content, maxChunkSize = MarkdownTranslator.DEFAULT_CHUNK_SIZE) {
         // For most markdown files, this will result in a single chunk
         const lines = content.split('\n');
         const chunks = [];
