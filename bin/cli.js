@@ -32,7 +32,6 @@ program
 .requiredOption('-l, --language <lang>', 'Target language (e.g., Spanish, French, German)')
 .option('-o, --output <file>', 'Output file path (optional)')
 .option('-k, --key <apikey>', 'Google Gemini API key (or set GEMINI_API_KEY env var)')
-.option('-m, --model <model>', 'Gemini model to use (default: gemini-1.5-flash)')
 .action(async (options) => {
     console.log(chalk.cyan(banner));
 
@@ -43,24 +42,6 @@ program
             console.error(chalk.red('❌ Error: Google Gemini API key is required.'));
             console.log(chalk.yellow('Set GEMINI_API_KEY environment variable or use --key option'));
             console.log(chalk.blue('Get your API key from: https://aistudio.google.com/app/apikey'));
-            process.exit(1);
-        }
-
-        // Validate model if specified
-        const modelName = options.model || 'gemini-1.5-flash';
-        const availableModels = MarkdownTranslator.getAvailableModels();
-        const selectedModel = availableModels.find(m => m.name === modelName);
-
-        if (options.model && !selectedModel) {
-            console.error(chalk.red(`❌ Error: Invalid model '${modelName}'`));
-            console.log(chalk.yellow('Available models:'));
-            availableModels.forEach((model) => {
-                const badge = model.recommended ? chalk.green('⭐ RECOMMENDED') :
-                    model.tier === 'preview' ? chalk.yellow('PREVIEW') : chalk.blue('STABLE');
-                console.log(chalk.gray(`  ${model.name.padEnd(35)} ${badge}`));
-                console.log(chalk.gray(`    ${model.description}`));
-            });
-            console.log(chalk.blue('\nUse: node bin/cli.js models  (to see all models)'));
             process.exit(1);
         }
 
@@ -94,14 +75,10 @@ program
         console.log(chalk.gray(`   Input:    ${inputPath}`));
         console.log(chalk.gray(`   Output:   ${outputPath}`));
         console.log(chalk.gray(`   Language: ${options.language}`));
-        console.log(chalk.gray(`   Model:    ${modelName}`));
-        if (selectedModel && selectedModel.tier === 'preview') {
-            console.log(chalk.yellow('   ⚠️  Using preview model - may have rate limits'));
-        }
         console.log('');
 
         // Initialize translator
-        const translator = new MarkdownTranslator(apiKey, modelName);
+        const translator = new MarkdownTranslator(apiKey);
 
         // Create progress spinner
         const spinner = ora({
@@ -199,33 +176,6 @@ program
     console.log(chalk.white('     md-translate translate -i README.md -l Spanish'));
     console.log('');
     console.log(chalk.blue('📚 For more help: md-translate --help'));
-});
-
-program
-.command('models')
-.description('List available Gemini models')
-.action(() => {
-    console.log(chalk.cyan(banner));
-    console.log(chalk.blue('🤖 Available Gemini Models:'));
-    console.log('');
-
-    const models = MarkdownTranslator.getAvailableModels();
-
-    models.forEach((model) => {
-        const badge = model.recommended ? chalk.green('⭐ RECOMMENDED') :
-            model.tier === 'preview' ? chalk.yellow('PREVIEW') : chalk.blue('STABLE');
-
-        console.log(`${chalk.white(model.name.padEnd(35))} ${badge}`);
-        console.log(chalk.gray(`  ${model.description}`));
-        console.log('');
-    });
-
-    console.log(chalk.yellow('💡 Usage Examples:'));
-    console.log(chalk.gray('  # Use default model'));
-    console.log(chalk.white('  node bin/cli.js translate -i file.md -l Spanish'));
-    console.log('');
-    console.log(chalk.gray('  # Use specific model'));
-    console.log(chalk.white('  node bin/cli.js translate -i file.md -l Spanish --model gemini-2.5-flash-preview-05-20'));
 });
 
 // Error handling

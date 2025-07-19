@@ -10,7 +10,7 @@ A powerful command-line tool that uses Google Gemini AI to translate markdown fi
 - 🎯 **Selective translation** - Only translates text content, keeps code and URLs intact
 - 📊 **Progress tracking** - Real-time progress indication with spinners
 - 🎨 **Beautiful CLI** - Colorful, user-friendly command-line interface
-- ⚡ **Fast processing** - Optimized for speed with concurrent chunk processing
+- ⚡ **Fast processing** - Optimized for speed with latest Gemini 2.5 Flash model
 
 ## Installation
 
@@ -88,13 +88,6 @@ Options:
   -l, --language <lang>  Target language (required)
   -o, --output <file>    Output file path (optional)
   -k, --key <apikey>     Google Gemini API key (optional)
-  -m, --model <model>    Gemini model to use (optional, default: gemini-1.5-flash)
-```
-
-#### `models` - List available Gemini models
-
-```bash
-md-translate models
 ```
 
 #### `languages` - List supported languages
@@ -147,20 +140,7 @@ md-translate translate -i docs/api.md -l French -o docs/fr/api.md
 md-translate translate -i guide.md -l German --key AIzaSyC...
 ```
 
-### Example 4: Using Different Models
-
-```bash
-# Use the latest recommended model
-md-translate translate -i file.md -l Japanese --model gemini-2.5-flash-preview-05-20
-
-# Use a more powerful model for complex content
-md-translate translate -i complex-doc.md -l Chinese --model gemini-2.5-pro-preview-05-06
-
-# Use a cost-efficient model for simple content
-md-translate translate -i simple.md -l French --model gemini-2.0-flash-lite
-```
-
-### Example 5: Large File Translation
+### Example 4: Large File Translation
 
 The tool automatically handles large files by splitting them into chunks:
 
@@ -168,36 +148,7 @@ The tool automatically handles large files by splitting them into chunks:
 md-translate translate -i large-document.md -l Japanese
 ```
 
-## Available Models
 
-The tool supports multiple Gemini models optimized for different use cases:
-
-### **Recommended Models**
-- **`gemini-2.5-flash-preview-05-20`** ⭐ - Latest model with best price-performance and adaptive thinking
-- **`gemini-2.5-pro-preview-05-06`** - Most powerful model for complex translation tasks
-
-### **Stable Models**  
-- **`gemini-2.0-flash`** - Next-generation features with 1M token context
-- **`gemini-2.0-flash-lite`** - Cost-efficient with low latency
-- **`gemini-1.5-flash`** - Fast and versatile (default)
-- **`gemini-1.5-flash-8b`** - Smaller model for high-volume tasks
-- **`gemini-1.5-pro`** - Complex reasoning tasks
-
-### **Choosing a Model**
-
-```bash
-# List all available models
-md-translate models
-
-# Use default model (recommended for most users)
-md-translate translate -i file.md -l Spanish
-
-# Use latest model for best results
-md-translate translate -i file.md -l Spanish --model gemini-2.5-flash-preview-05-20
-
-# Use cost-efficient model for simple content
-md-translate translate -i file.md -l Spanish --model gemini-2.0-flash-lite
-```
 
 ## What Gets Translated
 
