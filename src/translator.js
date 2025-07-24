@@ -3,6 +3,7 @@ import path from 'path';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import chalk from 'chalk';
 import fs from 'fs-extra';
+import { glob } from 'glob';
 
 class MarkdownTranslator {
     /**
@@ -174,6 +175,140 @@ ${text}`;
             };
         } catch (error) {
             console.error(chalk.red(`Error translating file: ${error.message}`));
+            throw error;
+        }
+    }
+
+    /**
+     * Translate multiple markdown files using glob patterns.
+     *
+     * @param {string} inputPattern - Glob pattern for input files (e.g., "docs/\*\*\/\*.md")
+     * @param {string} outputDir - Target directory for translated files
+     * @param {string} targetLanguage - Target language
+     * @param {Object} options - Translation options
+     * @param {Function} options.progressCallback - Optional progress callback
+     * @param {boolean} options.preserveStructure - Whether to preserve directory structure (default: true)
+     * @param {string} options.suffix - Suffix to add to output files (default: empty)
+     * @returns {Promise<Array>} Array of translation results
+     */
+    async translateFiles(inputPattern, outputDir, targetLanguage, options = {}) {
+        const {
+            progressCallback,
+            preserveStructure = true,
+            suffix = ''
+        } = options;
+
+        try {
+            // Normalize Windows paths for glob matching
+            const normalizedPattern = inputPattern.replace(/\\/g, '/');
+
+            // Find all matching files
+            console.log(chalk.blue(`Finding files matching pattern: ${inputPattern}`));
+            const files = await glob(normalizedPattern, {
+                ignore: ['node_modules/**', '.git/**', '**/.*'],
+                windowsPathsNoEscape: true
+            });
+
+            if (files.length === 0) {
+                throw new Error(`No files found matching pattern: ${inputPattern}`);
+            }
+
+            // Filter for markdown files only
+            const markdownFiles = files.filter((file) => {
+                const ext = path.extname(file).toLowerCase();
+                return ext === '.md' || ext === '.markdown' || ext === '.mdx';
+            });
+
+            if (markdownFiles.length === 0) {
+                throw new Error('No markdown files found in the matched files');
+            }
+
+            console.log(chalk.green(`Found ${markdownFiles.length} markdown file(s) to translate`));
+
+            // Ensure output directory exists
+            await fs.ensureDir(outputDir);
+
+            const results = [];
+            let processedFiles = 0;
+
+            for (const inputFile of markdownFiles) {
+                try {
+                    // Calculate output path
+                    let outputPath;
+                    if (preserveStructure) {
+                        // Preserve relative directory structure
+                        const normalizedInputFile = inputFile.replace(/\\/g, '/');
+                        const normalizedInputPattern = inputPattern.replace(/\\/g, '/');
+
+                        // Extract the base directory from the pattern
+                        let baseDir = '';
+                        if (path.isAbsolute(normalizedInputPattern)) {
+                            // For absolute patterns like "C:/path/to/docs/**/*.md"
+                            const patternParts = normalizedInputPattern.split('/');
+                            const wildcardIndex = patternParts.findIndex(part => part.includes('*'));
+                            if (wildcardIndex > 0) {
+                                baseDir = patternParts.slice(0, wildcardIndex).join('/');
+                            }
+                        }
+
+                        let relativePath;
+                        if (baseDir && normalizedInputFile.startsWith(baseDir)) {
+                            relativePath = path.relative(baseDir, normalizedInputFile);
+                        } else {
+                            relativePath = path.relative(process.cwd(), normalizedInputFile);
+                        }
+
+                        const parsed = path.parse(relativePath);
+                        const newName = suffix ? `${parsed.name}_${suffix}${parsed.ext}` : `${parsed.name}${parsed.ext}`;
+                        outputPath = path.join(outputDir, parsed.dir, newName);
+                    } else {
+                        // Flat structure in output directory
+                        const parsed = path.parse(inputFile);
+                        const newName = suffix ? `${parsed.name}_${suffix}${parsed.ext}` : `${parsed.name}${parsed.ext}`;
+                        outputPath = path.join(outputDir, newName);
+                    }
+
+                    console.log(chalk.yellow(`\n[${processedFiles + 1}/${markdownFiles.length}] Translating: ${inputFile}`));
+
+                    // Create per-file progress callback
+                    const currentFileIndex = processedFiles + 1;
+                    const fileProgressCallback = progressCallback ?
+                        (chunk, total) => progressCallback(currentFileIndex, markdownFiles.length, chunk, total, inputFile) :
+                        undefined;
+
+                    // Translate the file
+                    // eslint-disable-next-line no-await-in-loop
+                    const result = await this.translateFile(inputFile, outputPath, targetLanguage, fileProgressCallback);
+                    results.push(result);
+
+                    processedFiles++;
+                    console.log(chalk.green(`✅ Completed: ${outputPath}`));
+
+                } catch (error) {
+                    console.error(chalk.red(`❌ Failed to translate ${inputFile}: ${error.message}`));
+                    results.push({
+                        inputPath: inputFile,
+                        error: error.message,
+                        success: false
+                    });
+                }
+            }
+
+            // Summary
+            const successful = results.filter(r => !r.error).length;
+            const failed = results.length - successful;
+
+            console.log(chalk.blue('\n📊 Batch Translation Summary:'));
+            console.log(chalk.green(`   ✅ Successful: ${successful}`));
+            if (failed > 0) {
+                console.log(chalk.red(`   ❌ Failed: ${failed}`));
+            }
+            console.log(chalk.gray(`   📁 Output directory: ${outputDir}`));
+
+            return results;
+
+        } catch (error) {
+            console.error(chalk.red(`Error in batch translation: ${error.message}`));
             throw error;
         }
     }

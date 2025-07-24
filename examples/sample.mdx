@@ -1,0 +1,60 @@
+# MDX Sample Document
+
+This is a sample **MDX** document that combines markdown with JSX components.
+
+## Introduction
+
+Welcome to the MDX translator test! This file contains both markdown content and JSX elements.
+
+### Standard Markdown
+
+Here's some regular markdown content:
+
+- List item one
+- List item two with **bold text**
+- List item three with [a link](https://example.com)
+
+### Code Block
+
+```javascript
+function HelloWorld() {
+    return <div>Hello from React!</div>;
+}
+```
+
+### JSX Components
+
+<div className="alert alert-info">
+  This is a JSX div element that should remain **untranslated** in its structure,
+  but the text content inside should be translated.
+</div>
+
+<CustomComponent 
+  title="Sample Title" 
+  description="This description should be translated"
+>
+  The content inside this component should also be translated.
+</CustomComponent>
+
+### Mixed Content
+
+You can mix markdown with JSX seamlessly:
+
+<div style={{border: '1px solid #ccc', padding: '1rem'}}>
+  
+  ## Nested Markdown Header
+  
+  This markdown content is **inside** a JSX div and should be translated.
+  
+  - Nested list item 1
+  - Nested list item 2
+  
+</div>
+
+## Conclusion
+
+This MDX file tests the translation of markdown content while preserving JSX structure and attributes.
+
+<footer>
+  *This MDX document was created for testing the translation tool.*
+</footer> 

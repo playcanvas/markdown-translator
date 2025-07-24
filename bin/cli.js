@@ -27,11 +27,14 @@ program
 
 program
 .command('translate')
-.description('Translate a markdown or MDX file to specified language')
-.requiredOption('-i, --input <file>', 'Input markdown/MDX file path')
+.description('Translate markdown files to specified language')
+.requiredOption('-i, --input <pattern>', 'Input file path or glob pattern (e.g., "*.md", "docs/**/*.md")')
 .requiredOption('-l, --language <lang>', 'Target language (e.g., Spanish, French, German)')
-.option('-o, --output <file>', 'Output file path (optional)')
+.option('-o, --output <file>', 'Output file path (for single file translation)')
+.option('-d, --output-dir <dir>', 'Output directory (for batch translation or single file)')
 .option('-k, --key <apikey>', 'Google Gemini API key (or set GEMINI_API_KEY env var)')
+.option('--flat', 'Use flat structure in output directory (default: preserve structure)')
+.option('--suffix <suffix>', 'Custom suffix for output files (default: language name)')
 .action(async (options) => {
     console.log(chalk.cyan(banner));
 
@@ -45,80 +48,159 @@ program
             process.exit(1);
         }
 
-        // Validate input file
-        const inputPath = path.resolve(options.input);
-        if (!await fs.pathExists(inputPath)) {
-            console.error(chalk.red(`❌ Error: Input file not found: ${inputPath}`));
-            process.exit(1);
-        }
-
-        // Validate file extension
-        if (!inputPath.toLowerCase().endsWith('.md') &&
-            !inputPath.toLowerCase().endsWith('.markdown') &&
-            !inputPath.toLowerCase().endsWith('.mdx')) {
-            console.error(chalk.red('❌ Error: Input file must be a markdown file (.md, .markdown, or .mdx)'));
-            process.exit(1);
-        }
-
-        // Generate output path if not provided
-        const outputPath = options.output ?
-            path.resolve(options.output) :
-            path.join(
-                path.dirname(inputPath),
-                `${path.basename(inputPath, path.extname(inputPath))}_${options.language.toLowerCase().replace(/\s+/g, '_')}${path.extname(inputPath)}`
-            );
-
-        // Check if output file already exists
-        if (await fs.pathExists(outputPath)) {
-            console.log(chalk.yellow(`⚠️  Warning: Output file already exists: ${outputPath}`));
-        }
-
-        console.log(chalk.blue('📋 Translation Details:'));
-        console.log(chalk.gray(`   Input:    ${inputPath}`));
-        console.log(chalk.gray(`   Output:   ${outputPath}`));
-        console.log(chalk.gray(`   Language: ${options.language}`));
-        console.log('');
-
         // Initialize translator
         const translator = new MarkdownTranslator(apiKey);
 
-        // Create progress spinner
-        const spinner = ora({
-            text: 'Initializing translation...',
-            color: 'cyan'
-        }).start();
+        // Check if input is a glob pattern (contains wildcards or multiple matches)
+        const inputPattern = options.input;
+        const { glob } = await import('glob');
+        const matchedFiles = await glob(inputPattern, {
+            ignore: ['node_modules/**', '.git/**', '**/.*']
+        });
 
-        // eslint-disable-next-line no-unused-vars
-        let currentChunk = 0;
-        // eslint-disable-next-line no-unused-vars
-        let totalChunks = 0;
+        const isPattern = inputPattern.includes('*') || inputPattern.includes('?') || matchedFiles.length > 1;
 
-        const progressCallback = (chunk, total) => {
-            currentChunk = chunk;
-            totalChunks = total;
-            spinner.text = `Translating chunk ${chunk}/${total}...`;
-        };
+        if (isPattern) {
+            // Batch translation mode
+            if (!options.outputDir) {
+                console.error(chalk.red('❌ Error: --output-dir is required for batch translation'));
+                console.log(chalk.yellow('Use -d or --output-dir to specify the target directory'));
+                process.exit(1);
+            }
 
-        try {
-            const result = await translator.translateFile(
-                inputPath,
-                outputPath,
-                options.language,
-                progressCallback
-            );
+            const outputDir = path.resolve(options.outputDir);
 
-            spinner.succeed(chalk.green('✅ Translation completed successfully!'));
+            console.log(chalk.blue('📋 Batch Translation Details:'));
+            console.log(chalk.gray(`   Pattern:  ${inputPattern}`));
+            console.log(chalk.gray(`   Output:   ${outputDir}`));
+            console.log(chalk.gray(`   Language: ${options.language}`));
+            console.log(chalk.gray(`   Structure: ${options.flat ? 'Flat' : 'Preserved'}`));
+            console.log('');
 
-            // Show summary
-            console.log(chalk.blue('\n📊 Summary:'));
-            console.log(chalk.gray(`   Original length:  ${result.originalLength.toLocaleString()} characters`));
-            console.log(chalk.gray(`   Translated length: ${result.translatedLength.toLocaleString()} characters`));
-            console.log(chalk.gray(`   Language:         ${result.targetLanguage}`));
-            console.log(chalk.gray(`   Output file:      ${result.outputPath}`));
+            // Create progress handler
+            const spinner = ora({
+                text: 'Finding files...',
+                color: 'cyan'
+            }).start();
 
-        } catch (error) {
-            spinner.fail(chalk.red('❌ Translation failed'));
-            throw error;
+            let currentFile = '';
+            const progressCallback = (fileNum, totalFiles, chunk, totalChunks, fileName) => {
+                currentFile = path.basename(fileName);
+                spinner.text = `[${fileNum}/${totalFiles}] ${currentFile} - chunk ${chunk}/${totalChunks}`;
+            };
+
+            try {
+                const results = await translator.translateFiles(
+                    inputPattern,
+                    outputDir,
+                    options.language,
+                    {
+                        progressCallback,
+                        preserveStructure: !options.flat,
+                        suffix: options.suffix
+                    }
+                );
+
+                const successful = results.filter(r => !r.error).length;
+                const failed = results.length - successful;
+
+                if (failed === 0) {
+                    spinner.succeed(chalk.green('✅ All translations completed successfully!'));
+                } else {
+                    spinner.warn(chalk.yellow(`⚠️  Translation completed with ${failed} failures`));
+                }
+
+                // Show summary
+                console.log(chalk.blue('\n📊 Summary:'));
+                console.log(chalk.gray(`   Files processed: ${results.length}`));
+                console.log(chalk.green(`   Successful: ${successful}`));
+                if (failed > 0) {
+                    console.log(chalk.red(`   Failed: ${failed}`));
+                }
+                console.log(chalk.gray(`   Output directory: ${outputDir}`));
+
+            } catch (error) {
+                spinner.fail(chalk.red('❌ Batch translation failed'));
+                throw error;
+            }
+
+        } else {
+            // Single file translation mode
+            const inputPath = path.resolve(inputPattern);
+
+            // Validate input file
+            if (!await fs.pathExists(inputPath)) {
+                console.error(chalk.red(`❌ Error: Input file not found: ${inputPath}`));
+                process.exit(1);
+            }
+
+            // Validate file extension
+            if (!inputPath.toLowerCase().endsWith('.md') &&
+                !inputPath.toLowerCase().endsWith('.markdown') &&
+                !inputPath.toLowerCase().endsWith('.mdx')) {
+                console.error(chalk.red('❌ Error: Input file must be a markdown file (.md, .markdown, or .mdx)'));
+                process.exit(1);
+            }
+
+            // Generate output path
+            let outputPath;
+            if (options.output) {
+                outputPath = path.resolve(options.output);
+            } else if (options.outputDir) {
+                const parsed = path.parse(inputPath);
+                const newName = options.suffix ? `${parsed.name}_${options.suffix}${parsed.ext}` : `${parsed.name}${parsed.ext}`;
+                outputPath = path.join(path.resolve(options.outputDir), newName);
+            } else {
+                // When no output specified, add language suffix to avoid overwriting original
+                const suffix = options.suffix || options.language.toLowerCase().replace(/\s+/g, '_');
+                outputPath = path.join(
+                    path.dirname(inputPath),
+                    `${path.basename(inputPath, path.extname(inputPath))}_${suffix}${path.extname(inputPath)}`
+                );
+            }
+
+            // Check if output file already exists
+            if (await fs.pathExists(outputPath)) {
+                console.log(chalk.yellow(`⚠️  Warning: Output file already exists: ${outputPath}`));
+            }
+
+            console.log(chalk.blue('📋 Translation Details:'));
+            console.log(chalk.gray(`   Input:    ${inputPath}`));
+            console.log(chalk.gray(`   Output:   ${outputPath}`));
+            console.log(chalk.gray(`   Language: ${options.language}`));
+            console.log('');
+
+            // Create progress spinner
+            const spinner = ora({
+                text: 'Initializing translation...',
+                color: 'cyan'
+            }).start();
+
+            const progressCallback = (chunk, total) => {
+                spinner.text = `Translating chunk ${chunk}/${total}...`;
+            };
+
+            try {
+                const result = await translator.translateFile(
+                    inputPath,
+                    outputPath,
+                    options.language,
+                    progressCallback
+                );
+
+                spinner.succeed(chalk.green('✅ Translation completed successfully!'));
+
+                // Show summary
+                console.log(chalk.blue('\n📊 Summary:'));
+                console.log(chalk.gray(`   Original length:  ${result.originalLength.toLocaleString()} characters`));
+                console.log(chalk.gray(`   Translated length: ${result.translatedLength.toLocaleString()} characters`));
+                console.log(chalk.gray(`   Language:         ${result.targetLanguage}`));
+                console.log(chalk.gray(`   Output file:      ${result.outputPath}`));
+
+            } catch (error) {
+                spinner.fail(chalk.red('❌ Translation failed'));
+                throw error;
+            }
         }
 
     } catch (error) {
