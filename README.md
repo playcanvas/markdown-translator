@@ -8,7 +8,9 @@ A powerful command-line tool that uses Google Gemini AI to translate markdown an
 - 📝 **Markdown-aware** - Preserves all markdown formatting (headers, links, code blocks, tables, etc.)
 - 🔄 **Smart chunking** - Handles large files by splitting content intelligently
 - 🎯 **Selective translation** - Only translates text content, keeps code and URLs intact
-- 📊 **Progress tracking** - Real-time progress indication with spinners
+- 📂 **Batch processing** - Translate multiple files using glob patterns (e.g., `docs/**/*.md`)
+- 🏗️ **Structure preservation** - Maintain directory structure or flatten output as needed
+- 📊 **Progress tracking** - Real-time progress indication with spinners for single files and batches
 - 🎨 **Beautiful CLI** - Colorful, user-friendly command-line interface
 - ⚡ **Fast processing** - Optimized for speed with high-performance Gemini model
 
@@ -76,6 +78,24 @@ md-translate translate -i docs/guide.md -l French -o docs/guide_fr.md
 md-translate translate -i file.md -l German --key your-api-key
 ```
 
+### Batch Processing
+
+The tool supports batch processing of multiple markdown files using glob patterns:
+
+```bash
+# Translate all .md files in current directory
+md-translate translate -i "*.md" -l Spanish -d ./spanish/
+
+# Translate all markdown files in docs folder and subfolders
+md-translate translate -i "docs/**/*.md" -l French -d ./translations/
+
+# Batch translate with flat structure (no subdirectories)
+md-translate translate -i "content/**/*.md" -l German -d ./output/ --flat
+
+# Batch translate with custom suffix
+md-translate translate -i "*.md" -l Japanese -d ./translated/ --suffix "ja"
+```
+
 ### Available Commands
 
 #### `translate` - Translate a markdown or MDX file
@@ -84,10 +104,14 @@ md-translate translate -i file.md -l German --key your-api-key
 md-translate translate [options]
 
 Options:
-  -i, --input <file>     Input markdown/MDX file path (required)
-  -l, --language <lang>  Target language (required)
-  -o, --output <file>    Output file path (optional)
-  -k, --key <apikey>     Google Gemini API key (optional)
+  -i, --input <pattern>    Input file path or glob pattern (required)
+                          Examples: "file.md", "*.md", "docs/**/*.md"
+  -l, --language <lang>    Target language (required)
+  -o, --output <file>      Output file path (for single file translation)
+  -d, --output-dir <dir>   Output directory (for batch translation or single file)
+  -k, --key <apikey>       Google Gemini API key (optional)
+  --flat                   Use flat structure in output directory (default: preserve structure)
+  --suffix <suffix>        Custom suffix for output files (default: language name)
 ```
 
 #### `languages` - List supported languages
@@ -118,7 +142,9 @@ The tool supports 40+ languages including:
 
 ## Examples
 
-### Example 1: Basic Translation
+### Single File Translation
+
+#### Example 1: Basic Translation
 
 ```bash
 md-translate translate -i README.md -l Spanish
@@ -126,7 +152,7 @@ md-translate translate -i README.md -l Spanish
 
 **Output**: Creates `README_spanish.md` with Spanish translation
 
-### Example 2: Custom Output Path
+#### Example 2: Custom Output Path
 
 ```bash
 md-translate translate -i docs/api.md -l French -o docs/fr/api.md
@@ -134,19 +160,87 @@ md-translate translate -i docs/api.md -l French -o docs/fr/api.md
 
 **Output**: Creates `docs/fr/api.md` with French translation
 
-### Example 3: Using API Key Argument
+#### Example 3: Using API Key Argument
 
 ```bash
 md-translate translate -i guide.md -l German --key AIzaSyC...
 ```
 
-### Example 4: Large File Translation
+#### Example 4: Large File Translation
 
 The tool automatically handles large files by splitting them into chunks:
 
 ```bash
 md-translate translate -i large-document.md -l Japanese
 ```
+
+### Batch Translation
+
+#### Example 5: Translate All Markdown Files
+
+```bash
+md-translate translate -i "*.md" -l Spanish -d ./spanish/
+```
+
+**Output**: Translates all `.md` files in current directory to `./spanish/` folder
+
+#### Example 6: Recursive Translation with Structure Preservation
+
+```bash
+md-translate translate -i "docs/**/*.md" -l French -d ./translations/
+```
+
+**Output**: Translates all markdown files in `docs/` and preserves directory structure in `./translations/`
+
+```
+docs/
+├── guide.md
+├── api/
+│   └── reference.md
+└── tutorials/
+    └── getting-started.md
+
+# Becomes:
+translations/
+├── guide_french.md
+├── api/
+│   └── reference_french.md
+└── tutorials/
+    └── getting-started_french.md
+```
+
+#### Example 7: Flat Structure Batch Translation
+
+```bash
+md-translate translate -i "content/**/*.md" -l German -d ./output/ --flat
+```
+
+**Output**: Translates all files but places them in a flat structure (no subdirectories)
+
+```
+content/
+├── intro.md
+├── chapters/
+│   ├── chapter1.md
+│   └── chapter2.md
+└── appendix/
+    └── notes.md
+
+# Becomes:
+output/
+├── intro_german.md
+├── chapter1_german.md
+├── chapter2_german.md
+└── notes_german.md
+```
+
+#### Example 8: Custom Suffix
+
+```bash
+md-translate translate -i "*.md" -l Japanese -d ./translated/ --suffix "ja"
+```
+
+**Output**: Uses "ja" instead of "japanese" as the file suffix
 
 
 
@@ -171,7 +265,9 @@ md-translate translate -i large-document.md -l Japanese
 
 ## Output
 
-The tool provides detailed progress feedback:
+The tool provides detailed progress feedback for both single file and batch processing:
+
+### Single File Translation Output
 
 ```
 ╔═══════════════════════════════════════╗
@@ -192,6 +288,30 @@ The tool provides detailed progress feedback:
    Translated length: 3,120 characters
    Language:         Spanish
    Output file:      /path/to/README_spanish.md
+```
+
+### Batch Translation Output
+
+```
+╔═══════════════════════════════════════╗
+║        Markdown Translator            ║
+║     Powered by Google Gemini AI       ║
+╚═══════════════════════════════════════╝
+
+📋 Batch Translation Details:
+   Pattern:  docs/**/*.md
+   Output:   /path/to/translations/
+   Language: Spanish
+   Structure: Preserved
+
+⠋ [2/5] reference.md - chunk 1/2...
+✅ All translations completed successfully!
+
+📊 Summary:
+   Files processed: 5
+   Successful: 5
+   Failed: 0
+   Output directory: /path/to/translations/
 ```
 
 ## Error Handling
@@ -260,6 +380,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - The tool automatically chunks large files
 - Each chunk is processed with a small delay to avoid rate limiting
 - Very large files may take several minutes to process
+
+### Batch Processing
+
+- Use quotes around glob patterns to prevent shell expansion: `"*.md"` not `*.md`
+- The `--output-dir` option is required for batch translation
+- Large batches may take considerable time; use progress indicators to monitor
+- Failed files in a batch are reported individually without stopping the process
 
 ### Network Issues
 
